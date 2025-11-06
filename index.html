@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Domain Range Checker - APILayer</title>
+<title>Domain Range Checker (APILayer)</title>
 <style>
 body {
   background: #0d1117;
@@ -12,20 +12,36 @@ body {
   text-align: center;
   padding: 40px;
 }
-h1 { text-shadow: 0 0 8px #A9EE16; }
+h1 {
+  text-shadow: 0 0 8px #A9EE16;
+}
 input, button {
-  padding: 10px; margin: 5px; border-radius: 6px; border: none;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 6px;
+  border: none;
   font-size: 14px;
 }
-input { width: 180px; text-align: center; background: #111; color: #A9EE16; }
+input {
+  width: 180px;
+  text-align: center;
+  background: #111;
+  color: #A9EE16;
+}
 button {
   background: linear-gradient(90deg, #A9EE16, #73D400);
-  color: #000; font-weight: bold; cursor: pointer;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
 }
 button:hover { transform: scale(1.05); }
 #results {
-  margin-top: 30px; max-width: 600px; margin-inline: auto;
-  background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px;
+  margin-top: 30px;
+  max-width: 600px;
+  margin-inline: auto;
+  background: rgba(255,255,255,0.05);
+  padding: 20px;
+  border-radius: 10px;
   text-align: left;
 }
 .available { color: #00FF8C; }
@@ -49,7 +65,8 @@ footer { margin-top: 30px; font-size: 12px; color: #777; }
 <footer>© 2025 Domain Checker | APILayer Whois API ile çalışır</footer>
 
 <script>
-const API_KEY = "LUyGjnll5mLpe7s64P52oGEBWJA0ARl3"; // 🔑 APILayer API anahtarını buraya ekle
+const API_KEY = "LUyGjnll5mLpe7s64P52oGEBWJA0ARl3"; // 🔑 Kendi APILayer key’in
+
 let results = [];
 
 async function checkRange() {
@@ -64,7 +81,6 @@ async function checkRange() {
     return;
   }
 
-  // Prefix ve sayı kısmını ayır
   const startNum = parseInt(startDomain.match(/\d+/));
   const endNum = parseInt(endDomain.match(/\d+/));
   const prefix = startDomain.replace(startNum, "").split(".")[0];
@@ -84,11 +100,19 @@ async function checkRange() {
 }
 
 async function checkDomain(domain) {
-  const url = `https://api.apilayer.com/whois/query?domain=${domain}`;
-  const resultDiv = document.getElementById("results");
+  var myHeaders = new Headers();
+  myHeaders.append("apikey", API_KEY);
+
+  var requestOptions = {
+    method: 'GET',
+    redirect: 'follow',
+    headers: myHeaders
+  };
+
+  const url = `https://api.apilayer.com/whois/check?domain=${domain}`;
 
   try {
-    const response = await fetch(url, { headers: { "apikey": API_KEY } });
+    const response = await fetch(url, requestOptions);
     if (!response.ok) {
       updateResult(domain, "error", `HTTP ${response.status}`);
       results.push({ domain, status: "error", info: `HTTP ${response.status}` });
@@ -96,14 +120,15 @@ async function checkDomain(domain) {
     }
 
     const data = await response.json();
-
-    // Whois bilgisi varsa domain kayıtlıdır
-    if (data && data.result && data.result.created) {
-      updateResult(domain, "registered", `Kayıt Tarihi: ${data.result.created}`);
-      results.push({ domain, status: "registered", info: data.result.created });
+    if (data && data.result === "AVAILABLE") {
+      updateResult(domain, "available", "Boş");
+      results.push({ domain, status: "available", info: "Available" });
+    } else if (data && data.result === "UNAVAILABLE") {
+      updateResult(domain, "registered", "Kayıtlı");
+      results.push({ domain, status: "registered", info: "Registered" });
     } else {
-      updateResult(domain, "available", "Boş veya kayıtlı değil");
-      results.push({ domain, status: "available", info: "No record" });
+      updateResult(domain, "error", "Bilinmeyen Yanıt");
+      results.push({ domain, status: "error", info: "Unknown" });
     }
   } catch (err) {
     updateResult(domain, "error", err.message);
