@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify
-import requests
+import requests, os
 
 app = Flask(__name__)
 
-API_KEY = "LUyGjnll5mLpe7s64P52oGEBWJA0ARl3"  # kendi APILayer key'in
-PROXY_URL = "http://s3Wq9B:L6p1kZ@206.168.88.84:50100"  # yeni proxy formatı
+# Environment değişkenlerinden al (Render üzerinden)
+API_KEY = os.getenv("LUyGjnll5mLpe7s64P52oGEBWJA0ARl3")
+PROXY = os.getenv("http://s3Wq9B:L6p1kZ@206.168.88.84:50100")
 
 proxies = {
-    "http": PROXY_URL,
-    "https": PROXY_URL
+    "http": PROXY,
+    "https": PROXY
 }
 
 @app.route("/whois")
@@ -26,7 +27,8 @@ def whois_check():
 
 @app.route("/")
 def home():
-    return "✅ Proxy Çalışıyor - /whois?domain=example.com"
+    return "✅ Zbahis Proxy Çalışıyor - /whois?domain=example.com"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
