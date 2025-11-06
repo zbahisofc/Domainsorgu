@@ -3,70 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Domain Range Checker (APILayer)</title>
+<title>Zbahis Domain Checker</title>
 <style>
-body {
-  background: #0d1117;
-  color: #A9EE16;
-  font-family: Inter, sans-serif;
-  text-align: center;
-  padding: 40px;
-}
-h1 {
-  text-shadow: 0 0 8px #A9EE16;
-}
-input, button {
-  padding: 10px;
-  margin: 5px;
-  border-radius: 6px;
-  border: none;
-  font-size: 14px;
-}
-input {
-  width: 180px;
-  text-align: center;
-  background: #111;
-  color: #A9EE16;
-}
-button {
-  background: linear-gradient(90deg, #A9EE16, #73D400);
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-}
-button:hover { transform: scale(1.05); }
-#results {
-  margin-top: 30px;
-  max-width: 600px;
-  margin-inline: auto;
-  background: rgba(255,255,255,0.05);
-  padding: 20px;
-  border-radius: 10px;
-  text-align: left;
-}
-.available { color: #00FF8C; }
-.registered { color: #FF4444; }
-.loading { color: #FFD700; }
-footer { margin-top: 30px; font-size: 12px; color: #777; }
+  body {
+    font-family: Inter, sans-serif;
+    background: linear-gradient(135deg, #0D1117 0%, #0D0F13 100%);
+    color: #25FFE6;
+    text-align: center;
+    padding: 40px;
+  }
+
+  h1 {
+    font-size: 30px;
+    background: linear-gradient(90deg, #25FFE6, #0DC5FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 8px rgba(13,197,255,0.5);
+  }
+
+  input {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    margin: 5px;
+    background: rgba(255,255,255,0.1);
+    color: #25FFE6;
+    text-align: center;
+    width: 180px;
+  }
+
+  button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    margin: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(90deg, #FF6241, #FF4543);
+    box-shadow: 0 0 12px rgba(255,70,67,0.5);
+    transition: transform .2s;
+  }
+  button:hover {
+    transform: scale(1.05);
+  }
+
+  #results {
+    margin-top: 30px;
+    max-width: 700px;
+    margin-inline: auto;
+    text-align: left;
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  .available { color: #25FFE6; font-weight: bold; }
+  .registered { color: #FF4543; font-weight: bold; }
+  .loading { color: #FFD700; }
+  footer {
+    margin-top: 40px;
+    color: #888;
+    font-size: 13px;
+  }
 </style>
 </head>
 <body>
 
-<h1>🔍 Domain Range Checker (APILayer)</h1>
-<p>Örnek: zbahis300.com → zbahis500.com</p>
+<h1>🔍 ZBAHIS DOMAIN CHECKER</h1>
+<p>Örnek: zbahis300.com → zbahis320.com</p>
 
-<input id="startDomain" placeholder="Başlangıç (ör: zbahis300.com)">
-<input id="endDomain" placeholder="Bitiş (ör: zbahis500.com)">
+<input id="startDomain" placeholder="Başlangıç (zbahis300.com)">
+<input id="endDomain" placeholder="Bitiş (zbahis320.com)">
 <br>
 <button onclick="checkRange()">TARA</button>
 <button onclick="downloadCSV()">CSV İndir</button>
 
 <div id="results"></div>
-<footer>© 2025 Domain Checker | APILayer Whois API ile çalışır</footer>
+<footer>© 2025 Zbahis Domain Checker | API & Proxy Güvenli Bağlantı</footer>
 
 <script>
-const API_KEY = "LUyGjnll5mLpe7s64P52oGEBWJA0ARl3"; // 🔑 Kendi APILayer key’in
-
+const BACKEND_URL = "https://zbahis-proxy.repl.co/whois"; // 👈 Replit bağlantını buraya yaz
 let results = [];
 
 async function checkRange() {
@@ -77,7 +94,7 @@ async function checkRange() {
   results = [];
 
   if (!startDomain || !endDomain) {
-    alert("Lütfen başlangıç ve bitiş domainlerini girin!");
+    alert("Lütfen başlangıç ve bitiş domainlerini gir!");
     return;
   }
 
@@ -86,8 +103,8 @@ async function checkRange() {
   const prefix = startDomain.replace(startNum, "").split(".")[0];
   const tld = startDomain.split(".")[1] || "com";
 
-  if (isNaN(startNum) || isNaN(endNum) || startNum >= endNum) {
-    alert("Geçerli bir sayı aralığı girin!");
+  if (isNaN(startNum) || isNaN(endNum) || startNum > endNum) {
+    alert("Geçerli bir aralık gir!");
     return;
   }
 
@@ -95,57 +112,41 @@ async function checkRange() {
     const domain = `${prefix}${i}.${tld}`;
     appendResult(domain, "loading", "Sorgulanıyor...");
     await checkDomain(domain);
-    await new Promise(r => setTimeout(r, 300)); // 0.3 sn gecikme
+    await new Promise(r => setTimeout(r, 300));
   }
 }
 
 async function checkDomain(domain) {
-  var myHeaders = new Headers();
-  myHeaders.append("apikey", API_KEY);
-
-  var requestOptions = {
-    method: 'GET',
-    redirect: 'follow',
-    headers: myHeaders
-  };
-
-  const url = `https://api.apilayer.com/whois/check?domain=${domain}`;
-
   try {
-    const response = await fetch(url, requestOptions);
+    const response = await fetch(`${BACKEND_URL}?domain=${domain}`);
     if (!response.ok) {
       updateResult(domain, "error", `HTTP ${response.status}`);
-      results.push({ domain, status: "error", info: `HTTP ${response.status}` });
       return;
     }
-
     const data = await response.json();
-    if (data && data.result === "AVAILABLE") {
-      updateResult(domain, "available", "Boş");
-      results.push({ domain, status: "available", info: "Available" });
-    } else if (data && data.result === "UNAVAILABLE") {
-      updateResult(domain, "registered", "Kayıtlı");
-      results.push({ domain, status: "registered", info: "Registered" });
+    if (data.result === "AVAILABLE") {
+      updateResult(domain, "available", "✅ Boş");
+    } else if (data.result === "UNAVAILABLE") {
+      updateResult(domain, "registered", "❌ Kayıtlı");
     } else {
-      updateResult(domain, "error", "Bilinmeyen Yanıt");
-      results.push({ domain, status: "error", info: "Unknown" });
+      updateResult(domain, "error", "⚠️ Bilinmeyen Yanıt");
     }
-  } catch (err) {
-    updateResult(domain, "error", err.message);
-    results.push({ domain, status: "error", info: err.message });
+  } catch (e) {
+    updateResult(domain, "error", e.message);
   }
 }
 
 function appendResult(domain, cls, msg) {
   const el = document.createElement("div");
   el.id = domain;
-  el.innerHTML = `<div class="${cls}">${domain} → ${msg}</div>`;
+  el.className = cls;
+  el.innerHTML = `${domain} → ${msg}`;
   document.getElementById("results").appendChild(el);
 }
 
 function updateResult(domain, cls, msg) {
   const el = document.getElementById(domain);
-  if (el) el.innerHTML = `<div class="${cls}">${cls === 'available' ? '✅' : cls === 'registered' ? '❌' : '⚠️'} ${domain} → ${msg}</div>`;
+  if (el) el.innerHTML = `${domain} → <span class="${cls}">${msg}</span>`;
 }
 
 function downloadCSV() {
@@ -153,17 +154,16 @@ function downloadCSV() {
     alert("Henüz sonuç yok!");
     return;
   }
-  let csv = "Domain,Status,Info\n";
-  results.forEach(r => csv += `${r.domain},${r.status},${r.info}\n`);
+  let csv = "Domain,Status\n";
+  results.forEach(r => csv += `${r.domain},${r.status}\n`);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "domain_results.csv";
+  link.download = "zbahis-domain-results.csv";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
 </script>
-
 </body>
 </html>
