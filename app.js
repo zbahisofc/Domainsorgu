@@ -9,12 +9,10 @@ async function checkDomain(domain) {
 
         const data = await response.json();
 
-        // Eğer API hata dönerse → domain büyük ihtimalle boş
         if (!data || data.error || data.is_available === true) {
             return "AVAILABLE";
         }
 
-        // WHOIS datası varsa → domain %100 alınmış
         if (
             data.domain_name ||
             data.creation_date ||
@@ -25,11 +23,35 @@ async function checkDomain(domain) {
             return "TAKEN";
         }
 
-        // Veri yok → boş domain
         return "AVAILABLE";
 
     } catch (err) {
         console.log("Hata:", err);
         return "UNKNOWN";
+    }
+}
+
+
+
+// 🔥 SENİN EKLEMEK İSTEDİĞİN FONKSİYON
+async function startScan() {
+    const prefix = document.getElementById("prefix").value;
+    const start = parseInt(document.getElementById("start").value);
+    const end = parseInt(document.getElementById("end").value);
+    const tld = document.getElementById("tld").value;
+
+    const resultBox = document.getElementById("result");
+    resultBox.innerHTML = "Scanning...<br><br>";
+
+    for (let i = start; i <= end; i++) {
+        const domain = `${prefix}${i}${tld}`;
+        const status = await checkDomain(domain);
+
+        const color =
+            status === "AVAILABLE" ? "green" :
+            status === "TAKEN" ? "red" :
+            "yellow";
+
+        resultBox.innerHTML += `<span style="color:${color}">${domain} → ${status}</span><br>`;
     }
 }
