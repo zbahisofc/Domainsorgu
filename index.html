@@ -1,169 +1,26 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zbahis Domain Checker</title>
-<style>
-  body {
-    font-family: Inter, sans-serif;
-    background: linear-gradient(135deg, #0D1117 0%, #0D0F13 100%);
-    color: #25FFE6;
-    text-align: center;
-    padding: 40px;
-  }
-
-  h1 {
-    font-size: 30px;
-    background: linear-gradient(90deg, #25FFE6, #0DC5FF);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 8px rgba(13,197,255,0.5);
-  }
-
-  input {
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    margin: 5px;
-    background: rgba(255,255,255,0.1);
-    color: #25FFE6;
-    text-align: center;
-    width: 180px;
-  }
-
-  button {
-    padding: 10px 18px;
-    border: none;
-    border-radius: 8px;
-    margin: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    color: #fff;
-    background: linear-gradient(90deg, #FF6241, #FF4543);
-    box-shadow: 0 0 12px rgba(255,70,67,0.5);
-    transition: transform .2s;
-  }
-  button:hover { transform: scale(1.05); }
-
-  #results {
-    margin-top: 30px;
-    max-width: 700px;
-    margin-inline: auto;
-    text-align: left;
-    background: rgba(255,255,255,0.05);
-    padding: 20px;
-    border-radius: 10px;
-  }
-
-  .available { color: #25FFE6; font-weight: bold; }
-  .registered { color: #FF4543; font-weight: bold; }
-  .loading { color: #FFD700; }
-  footer {
-    margin-top: 40px;
-    color: #888;
-    font-size: 13px;
-  }
-</style>
+    <meta charset="UTF-8">
+    <title> Zbahis Bulk Domain Scanner</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>🔍 ZBAHIS DOMAIN CHECKER</h1>
-<p>Örnek: zbahis300.com → zbahis320.com</p>
+<div class="container">
+    <h1>Zbahis Domain Scanner</h1>
 
-<input id="startDomain" placeholder="Başlangıç (zbahis300.com)">
-<input id="endDomain" placeholder="Bitiş (zbahis320.com)">
-<br>
-<button onclick="checkRange()">TARA</button>
-<button onclick="downloadCSV()">CSV İndir</button>
+    <div class="input-group">
+        <input id="prefix" type="text" placeholder="Prefix (örn: zbahis)">
+        <input id="start" type="number" placeholder="Start (örn: 300)">
+        <input id="end" type="number" placeholder="End (örn: 600)">
+        <input id="tld" type="text" value=".com">
+        <button onclick="startScan()">SCAN</button>
+    </div>
 
-<div id="results"></div>
-<footer>© 2025 Zbahis Domain Checker | API + Proxy Güvenli Bağlantı</footer>
+    <div id="result"></div>
+</div>
 
-<script>
-// 🔗 Backend bağlantını buraya yaz
-const BACKEND_URL = "https://domain-kt.onrender.com/whois";
-
-let results = [];
-
-async function checkRange() {
-  const startDomain = document.getElementById("startDomain").value.trim();
-  const endDomain = document.getElementById("endDomain").value.trim();
-  const resultDiv = document.getElementById("results");
-  resultDiv.innerHTML = "";
-  results = [];
-
-  if (!startDomain || !endDomain) {
-    alert("Lütfen başlangıç ve bitiş domainlerini gir!");
-    return;
-  }
-
-  const startNum = parseInt(startDomain.match(/\d+/));
-  const endNum = parseInt(endDomain.match(/\d+/));
-  const prefix = startDomain.replace(startNum, "").split(".")[0];
-  const tld = startDomain.split(".")[1] || "com";
-
-  if (isNaN(startNum) || isNaN(endNum) || startNum > endNum) {
-    alert("Geçerli bir aralık gir!");
-    return;
-  }
-
-  for (let i = startNum; i <= endNum; i++) {
-    const domain = `${prefix}${i}.${tld}`;
-    appendResult(domain, "loading", "Sorgulanıyor...");
-    await checkDomain(domain);
-    await new Promise(r => setTimeout(r, 300));
-  }
-}
-
-async function checkDomain(domain) {
-  try {
-    const response = await fetch(`${BACKEND_URL}?domain=${domain}`);
-    if (!response.ok) {
-      updateResult(domain, "error", `HTTP ${response.status}`);
-      return;
-    }
-    const data = await response.json();
-    if (data.result === "AVAILABLE") {
-      updateResult(domain, "available", "✅ Boş");
-    } else if (data.result === "UNAVAILABLE") {
-      updateResult(domain, "registered", "❌ Kayıtlı");
-    } else {
-      updateResult(domain, "error", "⚠️ Bilinmeyen Yanıt");
-    }
-  } catch (e) {
-    updateResult(domain, "error", e.message);
-  }
-}
-
-function appendResult(domain, cls, msg) {
-  const el = document.createElement("div");
-  el.id = domain;
-  el.className = cls;
-  el.innerHTML = `${domain} → ${msg}`;
-  document.getElementById("results").appendChild(el);
-}
-
-function updateResult(domain, cls, msg) {
-  const el = document.getElementById(domain);
-  if (el) el.innerHTML = `${domain} → <span class="${cls}">${msg}</span>`;
-}
-
-function downloadCSV() {
-  if (results.length === 0) {
-    alert("Henüz sonuç yok!");
-    return;
-  }
-  let csv = "Domain,Status\n";
-  results.forEach(r => csv += `${r.domain},${r.status}\n`);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "zbahis-domain-results.csv";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-</script>
+<script src="app.js"></script>
 </body>
 </html>
