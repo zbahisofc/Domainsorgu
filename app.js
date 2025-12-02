@@ -1,40 +1,35 @@
 async function checkDomain(domain) {
-    const API_KEY = "OIgCwJbtkk0tSMngejuZkw==pXAxvfDzvOnxrBKe"; // api-ninjas key buraya
+    const API_KEY = "OIgCwJbtkk0tSMngejuZkw==pXAxvfDzvOnxrBKe";
     const url = `https://api.api-ninjas.com/v1/whois?domain=${domain}`;
 
     try {
         const response = await fetch(url, {
-            headers: { 'X-Api-Key': API_KEY }
+            headers: { "X-Api-Key": API_KEY }
         });
 
         const data = await response.json();
 
-        if (data.error) {
-            return "UNKNOWN";
+        // Eğer API hata dönerse → domain büyük ihtimalle boş
+        if (!data || data.error || data.is_available === true) {
+            return "AVAILABLE";
         }
 
-        return data.created ? "TAKEN" : "AVAILABLE";
+        // WHOIS datası varsa → domain %100 alınmış
+        if (
+            data.domain_name ||
+            data.creation_date ||
+            data.created ||
+            data.registrar ||
+            (data.name_servers && data.name_servers.length > 0)
+        ) {
+            return "TAKEN";
+        }
 
-    } catch (e) {
-        return "ERROR";
-    }
-}
+        // Veri yok → boş domain
+        return "AVAILABLE";
 
-async function startScan() {
-    const prefix = document.getElementById("prefix").value;
-    const start = parseInt(document.getElementById("start").value);
-    const end = parseInt(document.getElementById("end").value);
-    const tld = document.getElementById("tld").value;
-
-    const resultBox = document.getElementById("result");
-    resultBox.innerHTML = "Scanning...<br><br>";
-
-    for (let i = start; i <= end; i++) {
-        const domain = `${prefix}${i}${tld}`;
-        const status = await checkDomain(domain);
-
-        let statusClass = status === "AVAILABLE" ? "available" : "taken";
-
-        resultBox.innerHTML += `<span class="${statusClass}">${domain} → ${status}</span><br>`;
+    } catch (err) {
+        console.log("Hata:", err);
+        return "UNKNOWN";
     }
 }
